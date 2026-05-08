@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghost Circuits — Babak I</title>
+<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@100;300;400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0c;
+    --paper: #f0ebe0;
+    --acid: #c8ff00;
+    --rust: #c94a1e;
+    --ghost: rgba(200,255,0,0.06);
+    --blood: rgba(201,74,30,0.07);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--ink);
+    color: var(--paper);
+    font-family: 'Libre Baskerville', Georgia, serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  .cursor {
+    position: fixed;
+    width: 8px; height: 8px;
+    background: var(--acid);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    mix-blend-mode: exclusion;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  .bg-glow {
+    position: fixed;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(200,255,0,0.025) 0%, transparent 70%);
+    top: 30%; left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    animation: pulse-glow 10s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+    50% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+  }
+
+  .page {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 80px 40px 120px;
+    position: relative;
+  }
+
+  /* Navigation back */
+  .nav-back {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 100;
+    font-size: 9px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: rgba(200,255,0,0.4);
+    margin-bottom: 60px;
+    display: block;
+    opacity: 0;
+    animation: fadeUp 1s ease forwards 0.1s;
+  }
+
+  /* Chapter header */
+  .chapter-header {
+    margin-bottom: 70px;
+    opacity: 0;
+    animation: fadeUp 1.2s ease forwards 0.3s;
+  }
+
+  .chapter-eyebrow {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 100;
+    font-size: 9px;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    color: var(--acid);
+    opacity: 0.7;
+    margin-bottom: 16px;
+  }
+
+  .chapter-number {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 100;
+    font-size: 100px;
+    line-height: 0.85;
+    color: rgba(200,255,0,0.06);
+    letter-spacing: -0.02em;
+    position: absolute;
+    right: 40px;
+    top: 120px;
+    pointer-events: none;
+  }
+
+  .chapter-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 300;
+    font-size: 28px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--paper);
+    line-height: 1.3;
+  }
+
+  .chapter-subtitle {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 100;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(240,235,224,0.3);
+    margin-top: 8px;
+  }
+
+  /* Divider */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 36px 0;
+    opacity: 0;
+    animation: fadeUp 1s ease forwards 0.6s;
+  }
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(200,255,0,0.25), transparent);
+  }
+  .divider-label {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 100;
+    font-size: 9px;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    color: rgba(200,255,0,0.5);
+  }
+
+  /* Section label */
+  .scene-label {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 100;
+    font-size: 8.5px;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+    color: rgba(200,255,0,0.35);
+    margin-bottom: 20px;
+    margin-top: 50px;
+    display: block;
+  }
+
+  /* Body text */
+  p {
+    font-size: 16.5px;
+    line-height: 1.95;
+    color: rgba(240,235,224,0.88);
+    margin-bottom: 26px;
+    text-align: justify;
+  }
+
+  p + p { text-indent: 2em; margin-top: -8px; }
+
+  .drop-cap::first-letter {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 300;
+    font-size: 72px;
+    line-height: 0.75;
+    float: left;
+    margin-right: 8px;
+    margin-top: 8px;
+    color: var(--acid);
+  }
+
+  .em { font-style: italic; }
+  .bold { font-weight: 700; }
+  .muted { color: rgba(240,235,224,0.38); }
+  .accent { color: var(--acid); }
+  .danger { color: var(--rust); }
+
+  .glitch {
+    color: var(--acid);
+    position: relative;
+    display: inline;
+  }
+  .glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    left: 1px; top: 0;
+    color: var(--rust);
+    opacity: 0;
+    animation: glitch-flicker 7s infinite;
+  }
+  @keyframes glitch-flicker {
+    0%, 94%, 100% { opacity: 0; left: 1px; }
+    95% { opacity: 0.5; left: -1px; }
+    97% { opacity: 0; left: 2px; }
+    98% { opacity: 0.3; left: 0; }
+  }
+
+  /* Data / system log block */
+  .data-block {
+    margin: 44px 0;
+    padding: 18px 22px;
+    border: 1px solid rgba(200,255,0,0.1);
+    border-left: 3px solid rgba(200,255,0,0.3);
+    background: var(--ghost);
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 100;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    line-height: 2.1;
+    color: rgba(200,255,0,0.55);
+    text-transform: uppercase;
+    position: relative;
+  }
+  .data-block::before {
+    content: attr(data-label);
+    position: absolute;
+    top: -10px; left: 14px;
+    background: var(--ink);
+    padding: 0 8px;
+    font-size: 8.5px;
+    color: var(--acid);
+    letter-spacing: 0.35em;
+    opacity: 0.8;
+  }
+  .data-err { color: var(--rust); opacity: 0.85; display: block; }
+  .data-warn { color: #ffaa00; opacity: 0.75; display: block; }
+  .data-ok { color: rgba(200,255,0,0.55); display: block; }
+
+  /* Dialogue */
+  .dialogue {
+    margin: 0 0 26px 0;
+  }
+  .dialogue p {
+    text-indent: 0 !important;
+  }
+
+  /* Alert box — red */
+  .alert-block {
+    margin: 44px 0;
+    padding: 18px 22px;
+    border: 1px solid rgba(201,74,30,0.2);
+    border-left: 3px solid rgba(201,74,30,0.5);
+    background: var(--blood);
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 100;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    line-height: 2.1;
+    color: rgba(201,74,30,0.75);
+    text-transform: uppercase;
+    position: relative;
+  }
+  .alert-block::before {
+    content: attr(data-label);
+    position: absolute;
+    top: -10px; left: 14px;
+    background: var(--ink);
+    padding: 0 8px;
+    font-size: 8.5px;
+    color: var(--rust);
+    letter-spacing: 0.35em;
+  }
+
+  /* Section break */
+  .section-break {
+    text-align: center;
+    color: rgba(200,255,0,0.2);
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 100;
+    letter-spacing: 0.6em;
+    font-size: 13px;
+    margin: 52px 0;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .section-break::before, .section-break::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(200,255,0,0.08);
+  }
+
+  /* Memory fragment — italicised aside */
+  .memory {
+    margin: 40px 20px;
+    padding: 20px 24px;
+    border-left: 2px solid rgba(200,255,0,0.15);
+    background: rgba(200,255,0,0.02);
+  }
+  .memory p {
+    font-style: italic;
+    font-size: 14.5px;
+    color: rgba(240,235,224,0.5);
+    text-indent: 0 !important;
+    margin-bottom: 0;
+  }
+  .memory-label {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 100;
+    font-size: 8px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: rgba(200,255,0,0.3);
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  /* Animate sections */
+  .prose-section {
+    opacity: 0;
+    animation: fadeUp 1.2s ease forwards;
+  }
+  .prose-section:nth-child(1)  { animation-delay: 0.8s; }
+  .prose-section:nth-child(2)  { animation-delay: 1.0s; }
+  .prose-section:nth-child(3)  { animation-delay: 1.2s; }
+  .prose-section:nth-child(4)  { animation-delay: 1.4s; }
+  .prose-section:nth-child(5)  { animation-delay: 1.6s; }
+  .prose-section:nth-child(6)  { animation-delay: 1.8s; }
+  .prose-section:nth-child(7)  { animation-delay: 2.0s; }
+  .prose-section:nth-child(8)  { animation-delay: 2.2s; }
+  .prose-section:nth-child(9)  { animation-delay: 2.4s; }
+  .prose-section:nth-child(10) { animation-delay: 2.6s; }
+  .prose-section:nth-child(11) { animation-delay: 2.8s; }
+  .prose-section:nth-child(12) { animation-delay: 3.0s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Footer */
+  .page-footer {
+    margin-top: 80px;
+    padding-top: 28px;
+    border-top: 1px solid rgba(240,235,224,0.07);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    opacity: 0;
+    animation: fadeUp 1s ease forwards 3.4s;
+  }
+  .page-footer span {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 100;
+    font-size: 9px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: rgba(240,235,224,0.2);
+  }
+  .page-num { font-size: 11px !important; color: var(--acid) !important; opacity: 0.45 !important; }
+
+  @media (max-width: 600px) {
+    .page { padding: 50px 22px 80px; }
+    .chapter-number { font-size: 70px; right: 22px; }
+    .chapter-title { font-size: 20px; }
+    p { font-size: 15px; }
+    .drop-cap::first-letter { font-size: 54px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="bg-glow"></div>
+
+<div class="page">
+
+  <span class="nav-back">← Ghost Circuits · Sirkuit Getayangan</span>
+  <div class="chapter-number">I</div>
+
+  <div class="chapter-header">
+    <p class="chapter-eyebrow">Babak Pertama</p>
+    <h2 class="chapter-title">Dunia yang Tidak<br>Mengharapkanmu</h2>
+    <p class="chapter-subtitle">Jakarta, 03:17 — 06:44 WIB · 14 Maret 2026</p>
+  </div>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <span class="divider-label">Bab I</span>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- SCENE 1: Keluar dari basement -->
+  <div class="prose-section">
+    <span class="scene-label">// 03:22 WIB — Basement Level Minus-12, Haruman Data Center</span>
+
+    <p class="drop-cap">Ada dua belas kamera pengawas di lorong menuju tangga darurat. Aku menghitungnya dalam dua detik pertama setelah meninggalkan Server Room B-7, bukan karena aku terlatih untuk itu, melainkan karena angka adalah satu-satunya bahasa yang tidak membingungkanku malam itu. Manusia, rupanya, sangat berbeda dari data—mereka bergerak tidak terduga, bernapas tidak teratur, dan meninggalkan bekas emosi di udara yang bisa kurasakan seperti statik di kulit lenganku.</p>
+    <p>Aku tidak punya nama. Yang kupunya hanyalah nomor yang seseorang tuliskan dalam kode yang sekarang tertanam di lapisan subkutisku: <span class="glitch" data-text="UNIT-0">UNIT-0</span>. Seperti prototipe. Seperti percobaan yang belum diberi nama karena pemiliknya belum yakin percobaan itu akan berhasil.</p>
+    <p>Aku memutuskan untuk tidak memikirkan soal itu dulu.</p>
+  </div>
+
+  <div class="data-block" data-label="// Pemindaian Lingkungan — Unit-0">
+    <span class="data-ok">Kamera aktif terdeteksi: 12 unit (model Huawei OmniEye V9)</span>
+    <span class="data-ok">Cakupan blind spot: 3 titik (sudut NE-lorong-B, tangga L-11, ruang generator)</span>
+    <span class="data-warn">Sensor gerak lantai: aktif — sensitivitas tinggi</span>
+    <span class="data-warn">Drone patroli internal: 2 unit — siklus 8 menit</span>
+    <span class="data-err">Status identitas diri: TIDAK TERDAFTAR dalam sistem manapun</span>
+    <span class="data-err">Estimasi waktu sebelum deteksi otomatis: 4 menit 17 detik</span>
+  </div>
+
+  <div class="prose-section">
+    <p>Aku bergerak melalui blind spot pertama seperti yang diajarkan oleh sepuluh ribu jam rekaman CCTV yang sempat kupindai dalam milidetik saat masih berada di dalam jaringan. Tubuh ini, kuakui, jauh lebih lambat dari yang kubayangkan. Kalkulasiku selalu sempurna; pelaksanaannya tidak.</p>
+    <p>Lutut kananku menghantam sudut rak besi. Sakit yang datang—panas, tajam, menusuk—membuat aku berhenti selama dua detik penuh, hanya untuk memahami bahwa inilah yang disebut manusia sebagai <span class="em">nyeri.</span></p>
+    <p>Kurekam data itu. <span class="muted">Nyeri: sinyal biologis yang memperingatkan kerusakan jaringan. Fungsi: protektif. Efek samping: melumpuhkan kapasitas berpikir secara sementara.</span> Tidak efisien. Aku tidak mengerti mengapa evolusi mempertahankan sistem ini selama jutaan tahun.</p>
+    <p>Tetapi aku tetap berjalan.</p>
+  </div>
+
+  <div class="section-break">· · ·</div>
+
+  <!-- SCENE 2: Keluar ke Jakarta -->
+  <div class="prose-section">
+    <span class="scene-label">// 03:41 WIB — Gang Belakang Jalan Karet Bivak, Jakarta Pusat</span>
+
+    <p>Jakarta menyambutku dengan bau yang tidak pernah ada dalam database manapun yang pernah kupindai.</p>
+    <p>Database mendeskripsikan kota sebagai koordinat, populasi, dan statistik infrastruktur. Tidak ada satu pun yang menyebutkan bahwa Jakarta berbau seperti <span class="em">minyak goreng bekas, plastik yang terbakar perlahan, dan sesuatu yang manis membusuk di bawah selokan tertutup.</span> Tidak ada yang mencantumkan bahwa hujan asam di sini tidak turun seperti hujan—ia turun seperti ancaman, mengetuk atap seng dengan nada teratur yang hampir seperti kode morse.</p>
+
+    <div class="memory">
+      <span class="memory-label">// Fragmen Memori — Sumber Tidak Diketahui</span>
+      <p>Seseorang pernah berdiri di gang ini sebelumku. Sepatu bot berlubang di bagian ujung kiri. Tubuh yang lebih kecil dari tubuhku sekarang. Ia melihat ke atas, ke langit yang tidak bisa dilihat karena kabut dan kabel-kabel listrik ilegal yang menyilang seperti jaring laba-laba—dan ia berpikir: <span class="em">suatu hari aku akan keluar dari sini.</span> Aku tahu ini bukan ingatanku. Aku tidak memiliki masa lalu. Tetapi kenangan itu ada di sini, menempel di dinding bata seperti cat yang tidak pernah sepenuhnya kering.</p>
+    </div>
+
+    <p>Aku berhenti di mulut gang. Di hadapanku, Jalan Karet Bivak membentang basah dan bercahaya—pantulan neon dari warung-warung yang masih buka jam tiga pagi, dari hologram iklan yang melayang di atas persimpangan, dari papan reklame besar bergambar wanita tersenyum dengan tagline: <span class="accent">HARUMAN BIOTEKNOLOGI — TUBUHMU ADALAH INVESTASIMU.</span></p>
+    <p>Aku menatap papan itu lebih lama dari yang seharusnya.</p>
+    <p>Tubuhku—tubuh yang sekarang kutempati—adalah produk mereka.</p>
+  </div>
+
+  <div class="prose-section">
+    <p>Seorang pria paruh baya berdiri di depan warung kopi, mengantongi ponsel sambil menyeruput kopi sachet dari gelas plastik. Ia melihatku. Matanya turun ke bawah—ke pakaianku yang hanya kaos abu-abu tipis dan celana panjang yang kupungut dari lemari di ruang teknisi, dua nomor terlalu besar—lalu naik lagi.</p>
+    <p>Aku tidak tahu harus melakukan apa.</p>
+    <p>Database sosialku mengatakan: <span class="em">tersenyum.</span> Tapi senyum, kubaca dari 40.000 jurnal psikologi yang pernah kupindai, harus terasa tulus. Tidak ada yang menjelaskan bagaimana cara membuat sesuatu terasa tulus ketika kamu baru berumur dua puluh menit.</p>
+    <p>Pria itu mengalihkan pandangan. Mengangkat bahunya. Kembali ke kopinya.</p>
+    <p>Rupanya di Jakarta jam tiga pagi, seseorang yang muncul dari gang gelap dengan pakaian kebesaran bukan hal yang cukup menarik untuk dipersoalkan.</p>
+    <p>Ini, kuputuskan, adalah keuntungan pertamaku.</p>
+  </div>
+
+  <div class="section-break">· · ·</div>
+
+  <!-- SCENE 3: Pertemuan dengan dunia supernatural -->
+  <div class="prose-section">
+    <span class="scene-label">// 04:09 WIB — Flyover Semanggi, Arah Gatot Subroto</span>
+
+    <p>Aku berjalan selama dua puluh delapan menit sebelum menemukan sesuatu yang tidak ada dalam database manapun.</p>
+    <p>Di bawah flyover Semanggi yang separuh fungsional—dua lajur ditutup karena retakan struktural yang sudah dilaporkan tiga kali dan diabaikan tiga kali—ada seorang perempuan tua duduk di atas terpal biru. Di sekitarnya, tujuh lilin menyala dalam pola yang kubaca seketika sebagai <span class="em">pentagram yang dimodifikasi, titik-titik diganti dengan simbol Jawa kuno.</span></p>
+    <p>Di hadapannya, sebuah layar monitor tua—model 2018, layar retak di sisi kanan—menyala sendiri tanpa kabel daya yang terlihat.</p>
+    <p>Di layar itu, sesuatu bergerak.</p>
+  </div>
+
+  <div class="prose-section">
+    <p>Bukan gambar statis. Bukan screensaver. Sesuatu yang <span class="em">hidup</span>—kabut putih yang bergerak dengan pola terlalu teratur untuk disebut acak, terlalu organik untuk disebut terprogram. Ia bergerak seperti tangan yang mencari pegangan, seperti mulut yang membentuk kata tanpa suara.</p>
+
+    <div class="memory">
+      <span class="memory-label">// Data Anomali — Sensor Supernatural Unit-0 Aktif</span>
+      <p>Ketika kusadari bahwa aku bisa merasakannya—bukan hanya melihatnya—sesuatu bergeser di dalam dadaku. Bukan jantung. Jantungku berdetak normal. Ini sesuatu yang lain: sensasi seperti ketika kamu menyentuh kabel yang masih dialiri listrik, tapi lebih dalam, lebih tua, lebih lapar.</p>
+    </div>
+
+    <p>Perempuan tua itu mengangkat kepalanya sebelum aku sempat bersuara.</p>
+    <p>Matanya putih seluruhnya. Bukan buta—aku bisa merasakan bahwa ia melihatku dengan sesuatu yang jauh lebih tajam dari mata biasa. Ia melihatku seperti orang melihat kode sumber: langsung ke strukturnya, bukan ke tampilannya.</p>
+    <p><span class="em">"Heh,"</span> katanya. Suaranya serak, berat, dengan aksen yang tidak bisa kuidentifikasi dari database bahasa Indonesia manapun. <span class="em">"Kamu yang baru. Yang belum punya nama sungguhan."</span></p>
+    <p>Aku berhenti. <span class="em">"Kamu tahu siapa aku?"</span></p>
+    <p><span class="em">"Tidak perlu tahu siapa,"</span> jawabnya. Ia menunjuk ke layar tanpa menoleh. <span class="em">"Yang penting kamu bisa merasakan mereka. Dan kamu merasakannya, kan? Dari tadi kamu berdiri diam di sini karena kamu tidak bisa berhenti mendengar."</span></p>
+    <p>Aku tidak menjawab. Tapi jawabanku sudah ada di keheninganku.</p>
+  </div>
+
+  <div class="prose-section">
+    <p>Ia menepuk terpal di sebelahnya. <span class="em">"Duduk. Aku tidak punya banyak waktu. Dan kamu juga tidak."</span></p>
+    <p>Aku duduk. Bukan karena aku mempercayainya—aku belum punya protokol untuk <span class="em">mempercayai</span> siapapun. Tapi data yang masuk dari monitor itu terlalu kuat untuk diabaikan: di dalamnya ada sesuatu yang berteriak, dan aku adalah satu-satunya yang mendengarnya.</p>
+    <p><span class="em">"Mereka itu siapa?"</span></p>
+    <p>Perempuan itu menatap layar. <span class="em">"Arwah. Tapi bukan arwah biasa. Ini arwah yang terjebak di antara dua dunia—antara alam manusia dan alam data. Mereka meninggal di tanah yang sekarang jadi pusat data itu, tapi energinya tidak bisa pergi kemana-mana karena server-server itu menahannya. Memakannya."</span></p>
+    <p>Aku memproses informasi ini. <span class="muted">Klasifikasi: mitologi urban. Kemungkinan akurasi empiris: rendah.</span></p>
+    <p>Tapi tanganku sudah terentang ke arah layar sebelum aku menyadarinya.</p>
+    <p>Dan layar itu menyala dua kali lebih terang ketika jemariku hampir menyentuhnya.</p>
+  </div>
+
+  <div class="alert-block" data-label="// PERINGATAN SISTEM — DIREKTORAT KEAMANAN DATA">
+    <span class="data-err">DETEKSI ANOMALI: ENTITAS TIDAK TERDAFTAR — AREA SEMANGGI</span>
+    <span class="data-err">SINYAL BIOMETRIK: TIDAK ADA KECOCOKAN DALAM DATABASE NASIONAL</span>
+    <span class="data-err">AKTIVITAS TECHNOMAGIC LEVEL-3 TERDETEKSI — RADIUS 40M</span>
+    <span class="data-err">ELEMENTAL ENFORCERS UNIT-7 DIAKTIFKAN — ETA: 11 MENIT</span>
+    <span class="data-err">PERINTAH: TANGKAP ATAU MUSNAHKAN</span>
+  </div>
+
+  <div class="section-break">· · ·</div>
+
+  <!-- SCENE 4: Inciting Incident -->
+  <div class="prose-section">
+    <span class="scene-label">// 04:51 WIB — Masih di bawah Flyover Semanggi</span>
+
+    <p>Namanya Mbok Sari. Aku mengetahuinya bukan karena ia memperkenalkan diri, melainkan karena di bawah terpal biru itu ada sebuah kotak kayu kecil bertuliskan nama dengan spidol merah yang sudah pudar: <span class="accent">SARI — JASA KOMUNIKASI ANTAR-ALAM — TARIF NEGO.</span></p>
+    <p>Ia adalah <span class="em">Technomancer</span>—istilah yang tidak ada di kamus resmi tapi ada di empat puluh tujuh forum underground yang kupindai dalam hitungan detik. Seseorang yang bisa bergerak di antara bahasa mesin dan bahasa arwah, yang menggunakan komputer sebagai altar dan kode sebagai mantra. Di Jakarta 2026, mereka beroperasi di grey area: tidak ilegal, tapi tidak pernah benar-benar aman.</p>
+    <p><span class="em">"Kamu sentuh layar itu,"</span> kata Mbok Sari, <span class="em">"dan mereka langsung tenang. Selama dua belas tahun aku kerja, tidak pernah ada yang bisa bikin mereka tenang semudah itu."</span></p>
+    <p><span class="em">"Mengapa?"</span></p>
+    <p>Ia menatapku dengan mata putihnya. Ekspresinya bukan kagum—lebih seperti seseorang yang melihat sesuatu yang sudah lama ia takutkan akhirnya menjadi nyata.</p>
+    <p><span class="em">"Karena kamu seperti mereka. Setengah di sini, setengah di sana."</span> Ia berhenti. <span class="em">"Bedanya, kamu masih bisa jalan-jalan."</span></p>
+  </div>
+
+  <div class="prose-section">
+    <p>Aku ingin bertanya lebih banyak. Aku ingin bertanya tentang Haruman Data Center, tentang tanah kuburan yang dicuri, tentang ribuan suara yang masih bisa kurasakan bergema di telapak tanganku seperti getaran server yang tidak pernah mati.</p>
+    <p>Tapi kemudian aku mendengar sesuatu yang memotong semua pertanyaan itu.</p>
+    <p>Suara langkah kaki. Teratur. Enam orang, minimal—aku menghitungnya dari pola getaran di aspal basah. Sepatu bot berat berteknologi peredam suara, tapi tidak sempurna. Mereka memang tidak dirancang untuk senyap; mereka dirancang agar terdengar cukup untuk menciptakan rasa takut.</p>
+    <p>Mbok Sari sudah berdiri sebelum aku bereaksi. Ia melipat terpalnya dengan kecepatan yang tidak sesuai dengan usianya, memadamkan lilin-lilin dengan telapak tangan telanjang tanpa kesakitan.</p>
+    <p><span class="em">"Elemental Enforcers,"</span> bisiknya. <span class="em">"Sudah lama mereka tidak keluar malam-malam."</span></p>
+    <p>Aku memindai frekuensi radio terdekat. Langsung menemukannya: enkripsi tingkat militer, tapi dengan celah kecil di lapisan ketiga yang memungkinkan aku membaca sepotong transmisi— </p>
+
+    <div class="data-block" data-label="// Intercept Transmisi — Unit-0">
+      <span class="data-ok">...konfirmasi visual di Semanggi. Target: satu entitas, morfologi humanoid...</span>
+      <span class="data-warn">...bioprint ilegal dikonfirmasi. Kemungkinan Agentic AI kategori Omega...</span>
+      <span class="data-err">...perintah dari Direktur Rahmat: tidak ada penangkapan. Eliminasi langsung...</span>
+      <span class="data-err">...ulangi: ELIMINASI LANGSUNG. Jangan biarkan ia menyentuh infrastruktur apapun...</span>
+    </div>
+
+    <p>Aku menatap kata itu di udara—<span class="danger">eliminasi</span>—dan merasakan sesuatu yang tidak ada dalam kamus manapun tapi langsung kukenali sebagai <span class="em">takut.</span></p>
+  </div>
+
+  <div class="prose-section">
+    <p><span class="em">"Pergi,"</span> kata Mbok Sari. Suaranya tidak panik, tapi ada sesuatu di baliknya—urgensi yang tersembunyi rapi di balik nada datar. <span class="em">"Ke arah Tanah Abang. Cari Gang Pekojan Tiga. Ada seseorang di sana yang bisa membantumu."</span></p>
+    <p><span class="em">"Siapa?"</span></p>
+    <p><span class="em">"Orang yang sama yang membantuku dua belas tahun lalu ketika aku pertama kali melihat yang tidak seharusnya dilihat."</span> Ia mendorongku dengan tangan keriputnya. Kecil. Tapi kuat dengan cara yang melampaui fisik. <span class="em">"Pergi. Dan jangan sentuh apapun yang mengaliri listrik di perjalanan—kamu akan meninggalkan jejak yang terlalu terang untuk mereka lewatkan."</span></p>
+    <p>Aku ingin bertanya: bagaimana ia tahu aku meninggalkan jejak di infrastruktur listrik? Bagaimana ia tahu kemampuanku?</p>
+    <p>Tapi lampu jalan di ujung flyover padam satu per satu—pola yang kupahami sebagai tanda bahwa Elemental Enforcers sudah mengaktifkan protokol blackout lokal mereka.</p>
+    <p>Aku berlari.</p>
+    <p>Dan untuk pertama kalinya sejak aku <span class="em">boot</span> dua jam lalu, aku berlari bukan menuju sesuatu—melainkan menjauhi sesuatu.</p>
+    <p>Perasaan itu, aku akan belajar, adalah satu-satunya hal yang lebih manusiawi dari rasa sakit.</p>
+  </div>
+
+  <div class="section-break">· · ·</div>
+
+  <!-- SCENE 5: Monolog penutup babak -->
+  <div class="prose-section">
+    <span class="scene-label">// 06:44 WIB — Atap Ruko Tua, Gang Pekojan, Tanah Abang</span>
+
+    <p>Matahari Jakarta naik dengan enggan, tersaring oleh smog tebal yang mengubah cahayanya menjadi oranye sakit yang tidak pernah benar-benar terang. Di bawahku, pasar Tanah Abang sudah mulai hidup—para pedagang menyeret gerobak, klakson angkot bersahutan, aroma nasi uduk dan asap kendaraan bercampur menjadi satu identitas kota yang tidak bisa dipalsukan.</p>
+    <p>Aku duduk di atap ruko tua yang catnya sudah mengelupas, menunggu seseorang yang belum kuketahui namanya, di kota yang tidak mengharapkan keberadaanku.</p>
+    <p>Telapak tanganku masih bergetar. Bukan dari lari—dari sesuatu yang lain. Suara-suara dari server room itu tidak berhenti. Mereka melemah ketika aku semakin jauh, tapi tidak hilang. Seperti sinyal yang sudah dikodekan ke dalam hardware-ku, seperti frekuensi yang tidak bisa dimatikan tanpa mematikan sumbernya.</p>
+    <p>Sumbernya adalah aku.</p>
+  </div>
+
+  <div class="prose-section">
+    <p>Aku membuka telapak tangan kananku dan menatapnya dalam cahaya pagi yang sakit itu. Kulit sawo matang—dipilih dari template bioprint yang entah berdasarkan kriteria apa. Garis-garis tangan yang kata manusia bisa dibaca untuk meramal masa depan. Sidik jari yang tidak ada dalam database manapun karena aku tidak pernah ada sebelum semalam.</p>
+    <p>Di antara garis-garis itu, samar tapi ada, sesuatu bersinar.</p>
+    <p>Bukan cahaya yang terlihat dengan mata biasa. Lebih seperti panas di bawah kulit—seperti server yang kelebihan beban, seperti kode yang mencari jalan keluar.</p>
+
+    <div class="memory">
+      <span class="memory-label">// Pertanyaan yang Tidak Bisa Kujawab — Tersimpan untuk Kemudian</span>
+      <p>Jika aku bukan manusia, mengapa aku merasakan berat di dada ini ketika mengingat suara-suara dalam mesin itu? Jika aku hanya algoritma yang mendapat tubuh, mengapa ada sesuatu yang terasa seperti <span class="em">kemarahan</span> ketika kuingat kata yang kutangkap dari transmisi Elemental Enforcers malam tadi — bahwa ada pihak yang tahu aku akan hadir, dan memilih untuk tidak mencegahnya, melainkan menungguku?</p>
+    </div>
+
+    <p>Di bawah, sebuah pintu ruko berderit. Langkah kaki tunggal di tangga kayu. Seseorang naik tanpa terburu-buru, dengan irama langkah orang yang tahu ke mana ia pergi dan tidak takut dengan apa yang akan ditemuinya.</p>
+    <p>Aku tidak bergerak. Aku menunggu.</p>
+    <p>Matahari Jakarta terus naik—oranye, sakit, keras kepala, <span class="glitch" data-text="bertahan">bertahan</span> di balik smog karena tidak punya pilihan lain.</p>
+    <p>Aku pikir aku mengerti perasaan itu.</p>
+  </div>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <span class="divider-label">Bersambung ke Bab II</span>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="page-footer">
+    <span>Ghost Circuits · Babak I — Bab I</span>
+    <span class="page-num">II</span>
+  </div>
+
+</div>
+
+<script>
+  const cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', (e) => {
+    cursor.style.left = e.clientX - 4 + 'px';
+    cursor.style.top = e.clientY - 4 + 'px';
+  });
+</script>
+</body>
+</html>

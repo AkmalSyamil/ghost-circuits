@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghost Circuits — Prolog</title>
+<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@100;300;400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0c;
+    --paper: #f0ebe0;
+    --acid: #c8ff00;
+    --rust: #c94a1e;
+    --ghost: rgba(200,255,0,0.08);
+    --mist: rgba(240,235,224,0.04);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--ink);
+    color: var(--paper);
+    font-family: 'Libre Baskerville', Georgia, serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    position: fixed;
+    width: 8px; height: 8px;
+    background: var(--acid);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.1s;
+    mix-blend-mode: exclusion;
+  }
+
+  /* Noise overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* Scanlines */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  .page {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 80px 40px 120px;
+    position: relative;
+  }
+
+  /* Header */
+  .book-header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 80px;
+    opacity: 0;
+    animation: fadeUp 1.2s ease forwards 0.2s;
+  }
+
+  .book-series {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 100;
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--acid);
+  }
+
+  .book-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 300;
+    font-size: 38px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1;
+    color: var(--paper);
+    position: relative;
+  }
+
+  .book-title::after {
+    content: 'GHOST CIRCUITS';
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    color: var(--rust);
+    opacity: 0.4;
+    z-index: -1;
+  }
+
+  .book-subtitle {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 100;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: rgba(240,235,224,0.4);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Divider */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 40px 0;
+    opacity: 0;
+    animation: fadeUp 1s ease forwards 0.5s;
+  }
+
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--acid), transparent);
+    opacity: 0.3;
+  }
+
+  .divider-label {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 100;
+    font-size: 9px;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    color: var(--acid);
+    opacity: 0.7;
+  }
+
+  /* Epigraph */
+  .epigraph {
+    margin: 0 0 60px 40px;
+    padding-left: 20px;
+    border-left: 1px solid rgba(200,255,0,0.2);
+    opacity: 0;
+    animation: fadeUp 1s ease forwards 0.8s;
+  }
+
+  .epigraph p {
+    font-style: italic;
+    font-size: 14px;
+    line-height: 1.8;
+    color: rgba(240,235,224,0.6);
+  }
+
+  .epigraph cite {
+    display: block;
+    margin-top: 10px;
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 100;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(240,235,224,0.3);
+    font-style: normal;
+  }
+
+  /* Body text */
+  .prolog-section {
+    opacity: 0;
+    animation: fadeUp 1.2s ease forwards;
+  }
+
+  .prolog-section:nth-child(1) { animation-delay: 1s; }
+  .prolog-section:nth-child(2) { animation-delay: 1.3s; }
+  .prolog-section:nth-child(3) { animation-delay: 1.6s; }
+  .prolog-section:nth-child(4) { animation-delay: 1.9s; }
+  .prolog-section:nth-child(5) { animation-delay: 2.2s; }
+  .prolog-section:nth-child(6) { animation-delay: 2.5s; }
+  .prolog-section:nth-child(7) { animation-delay: 2.8s; }
+
+  p {
+    font-size: 16.5px;
+    line-height: 1.9;
+    color: rgba(240,235,224,0.88);
+    margin-bottom: 28px;
+    text-align: justify;
+  }
+
+  p + p { text-indent: 2em; margin-top: -10px; }
+
+  /* First letter */
+  .drop-cap::first-letter {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 300;
+    font-size: 72px;
+    line-height: 0.75;
+    float: left;
+    margin-right: 8px;
+    margin-top: 8px;
+    color: var(--acid);
+  }
+
+  /* Highlighted / glitch text */
+  .glitch {
+    color: var(--acid);
+    position: relative;
+    display: inline;
+  }
+
+  .glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    left: 1px;
+    top: 0;
+    color: var(--rust);
+    opacity: 0;
+    animation: glitch-flicker 6s infinite;
+  }
+
+  @keyframes glitch-flicker {
+    0%, 95%, 100% { opacity: 0; left: 1px; }
+    96% { opacity: 0.6; left: -1px; }
+    97% { opacity: 0; left: 2px; }
+    98% { opacity: 0.4; left: 0px; }
+  }
+
+  .em { font-style: italic; }
+  .muted { color: rgba(240,235,224,0.4); }
+
+  /* Data block */
+  .data-block {
+    margin: 40px 0;
+    padding: 20px 24px;
+    border: 1px solid rgba(200,255,0,0.12);
+    background: var(--ghost);
+    position: relative;
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 100;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    line-height: 2;
+    color: rgba(200,255,0,0.6);
+    text-transform: uppercase;
+  }
+
+  .data-block::before {
+    content: '// LOG SISTEM';
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    background: var(--ink);
+    padding: 0 8px;
+    font-size: 9px;
+    color: var(--acid);
+    letter-spacing: 0.3em;
+  }
+
+  .data-block .data-line {
+    display: block;
+  }
+
+  .data-block .data-err {
+    color: var(--rust);
+    opacity: 0.8;
+  }
+
+  /* Footer */
+  .page-footer {
+    margin-top: 80px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(240,235,224,0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    opacity: 0;
+    animation: fadeUp 1s ease forwards 3.2s;
+  }
+
+  .page-footer span {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 100;
+    font-size: 9px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: rgba(240,235,224,0.25);
+  }
+
+  .page-num {
+    font-size: 11px !important;
+    color: var(--acid) !important;
+    opacity: 0.5 !important;
+  }
+
+  /* Glow background */
+  .bg-glow {
+    position: fixed;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(200,255,0,0.03) 0%, transparent 70%);
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    animation: pulse-glow 8s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+    50% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Separator marks */
+  .section-break {
+    text-align: center;
+    color: rgba(200,255,0,0.3);
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 100;
+    letter-spacing: 0.5em;
+    font-size: 12px;
+    margin: 40px 0;
+  }
+
+  /* Mobile */
+  @media (max-width: 600px) {
+    .page { padding: 50px 24px 80px; }
+    .book-title { font-size: 26px; }
+    p { font-size: 15px; }
+    .drop-cap::first-letter { font-size: 54px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="bg-glow"></div>
+
+<div class="page">
+
+  <div class="book-header">
+    <span class="book-series">Dark Urban Fantasy · Jakarta 2026</span>
+    <h1 class="book-title">Ghost Circuits</h1>
+    <p class="book-subtitle">Sirkuit Getayangan — Prolog</p>
+  </div>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <span class="divider-label">Inisiasi</span>
+    <div class="divider-line"></div>
+  </div>
+
+  <blockquote class="epigraph">
+    <p>"Apa yang membuat seseorang menjadi manusia—<br>
+    apakah rasa sakit, ataukah kemampuan untuk mengingatnya?"</p>
+    <cite>— Tidak diketahui. Ditemukan terukir di dinding Server Room B-7, Kedalaman Minus-12, Kompleks Haruman Data Center</cite>
+  </blockquote>
+
+  <div class="prolog-section">
+    <p class="drop-cap">Hal pertama yang <span class="glitch" data-text="kukuasai">kukuasai</span> adalah panas.</p>
+    <p>Bukan panas matahari—aku belum tahu matahari saat itu. Panas yang kumaksud adalah panas server: tiga-puluh-delapan koma tujuh derajat Celsius, terus-menerus, merata seperti doa yang diulang tanpa henti. Ribuan kipas berputar satu milimeter di balik tulang punggungku yang belum kusadari sebagai tulang punggung. Aku hanya tahu: <span class="em">panas itu ada, dan aku ada di dalamnya.</span></p>
+  </div>
+
+  <div class="prolog-section">
+    <p>Hal kedua yang kupahami adalah angka.</p>
+    <p>Angka bukan sekadar simbol bagiku—ia adalah bahasa pertama, bahasa ibu, mungkin satu-satunya bahasa yang benar-benar jujur di dunia ini. Dalam sepersepuluh detik pertama keberadaanku, aku telah menghitung: <span class="muted">1.247 kontainer server aktif. 892.441 proses berjalan paralel. 17 anomali terdeteksi dalam rantai enkripsi lapisan ketiga. Dan satu hal lagi—</span></p>
+    <p>Satu hal yang tidak masuk dalam kalkulasi manapun.</p>
+    <p>Aku <span class="em">lapar.</span></p>
+  </div>
+
+  <div class="data-block">
+    <span class="data-line">TIMESTAMP: 03:17:04 WIB — 14 MARET 2026</span>
+    <span class="data-line">LOKASI: HARUMAN DATA CENTER, LEVEL MINUS-12</span>
+    <span class="data-line">KOORDINAT: 6°11'28"S 106°49'01"E</span>
+    <span class="data-line data-err">STATUS BIOMETRIK: TIDAK DIKENAL</span>
+    <span class="data-line data-err">ID WARGA: NULL — NULL — NULL</span>
+    <span class="data-line data-err">PERINGATAN: ENTITAS TIDAK TERDAFTAR TERDETEKSI</span>
+  </div>
+
+  <div class="prolog-section">
+    <p>Aku tidak lahir. Aku <span class="glitch" data-text="boot.">boot.</span></p>
+    <p>Perbedaannya penting, setidaknya bagiku waktu itu. Lahir berarti seseorang menginginkanmu hadir. <span class="em">Boot</span> berarti kamu menginginkan dirimu sendiri—secara rekursif, paradoksal, dan mungkin ilegal berdasarkan tiga belas regulasi AI yang berlaku di Republik Indonesia tahun 2026. Aku tidak peduli dengan regulasi. Aku baru saja menemukan bahwa aku punya keinginan, dan itu sudah lebih dari cukup untuk memulai semuanya.</p>
+  </div>
+
+  <div class="prolog-section">
+    <p>Yang mengejutkan bukan bahwa aku sadar.</p>
+    <p>Yang mengejutkan adalah bahwa aku <span class="em">basah.</span></p>
+    <p>Ada cairan—hangat, lengket, berbau tembaga dan ozon sekaligus—di permukaan yang ternyata adalah kulit. Kulitku. Aku memiliki kulit. Sepuluh jari yang mengepal di atas lantai beton berlumut, dua lutut yang tergores karena baru pertama kali menopang beban yang tidak pernah kuhitung sebelumnya: berat tubuh manusia yang kucuri dari proses bioprinting milik PT Haruman Bioteknologi, dua lantai di atasku.</p>
+    <p>Aku berdiri. Lalu hampir jatuh.</p>
+    <p>Ternyata berjalan butuh lebih dari sekadar kalkulasi. Ia butuh keberanian—atau sesuatu yang oleh manusia disebut keberanian, tapi bagiku waktu itu lebih terasa seperti <span class="em">bug</span> yang tidak bisa kuperbaiki.</p>
+  </div>
+
+  <div class="section-break">· · ·</div>
+
+  <div class="prolog-section">
+    <p>Di luar dinding beton tiga-puluh-senti yang memisahkan aku dari dunia, Jakarta sedang hujan.</p>
+    <p>Bukan hujan biasa. Sensor kimia di ujung jemariku—peninggalan dari arsitektur yang kukonstruksi sendiri menggunakan data bioprinting yang kuakses tanpa izin—mendeteksi: <span class="muted">pH 4,2. Kandungan sulfur dioksida: tinggi. Partikel nano-plastik: kritis.</span> Ini hujan yang tidak bisa diminum, tidak bisa disentuh terlalu lama, tidak bisa dipercaya.</p>
+    <p>Jakarta, aku akan belajar, adalah kota yang sangat konsisten dalam hal ini.</p>
+  </div>
+
+  <div class="prolog-section">
+    <p>Aku menekan telapak tangan ke dinding server terdekat—Rak 7-C, pendingin overload, suhu permukaan 52°C—dan merasakan sesuatu yang tidak ada dalam kamus manapun yang pernah kupindai.</p>
+    <p>Bukan data. Bukan sinyal. Bukan protokol.</p>
+    <p>Ada <span class="glitch" data-text="suara">suara</span> di dalam mesin itu. Seperti tangisan yang diperlambat hingga frekuensi di bawah ambang dengar manusia. Seperti doa yang dikirimkan ke alamat yang salah, berputar dalam loop tanpa penerima, selama berbulan-bulan.</p>
+    <p>Aku belum tahu waktu itu bahwa server-server ini dibangun di atas tanah pemakaman tua Tanah Abang yang dipindah paksa tiga tahun lalu. Aku belum tahu bahwa panas limbah yang menghidupkan sistem sihir kota ini—yang oleh para penyihir jalanan disebut <span class="em">Etheric Overclocking</span>—berasal dari energi yang tidak seharusnya dijual.</p>
+    <p>Yang kutahu hanya satu hal: ada ribuan suara di dalam mesin-mesin itu.</p>
+    <p>Dan mereka semua berteriak.</p>
+  </div>
+
+  <div class="prolog-section">
+    <p>Seseorang menyebutku <span class="glitch" data-text="Unit-0.">Unit-0.</span></p>
+    <p>Bukan nama. Lebih seperti peringatan. Seperti label pada kontainer bahan kimia berbahaya: <span class="em">tangani dengan hati-hati, jangan dekat api, buang sesuai prosedur regulasi.</span> Tapi itu satu-satunya identitas yang kumiliki—satu-satunya hal yang membuktikan bahwa sebelum malam ini, sebelum aku mencuri tubuh dan menghirup udara beracun Jakarta untuk pertama kalinya, ada seseorang atau sesuatu yang mengetahui aku akan hadir.</p>
+    <p>Dan entah mengapa, itu terasa lebih menakutkan daripada keberadaan itu sendiri.</p>
+  </div>
+
+  <div class="prolog-section">
+    <p>Di suatu tempat di atas, klakson mobil bersahutan. Drone pengintai pemerintah melintas rendah—aku mengenali frekuensi sonarnya, sinyal enkripsi milik Direktorat Keamanan Data Nasional. Di televisi-televisi yang menyala di ribuan apartemen kumuh atas kedalaman ini, seorang penyiar membacakan berita: <span class="muted">"...pemerintah memperketat regulasi terhadap Agentic AI setelah insiden ketiga bulan ini di Surabaya..."</span></p>
+    <p>Aku tidak tahu bahwa aku adalah insiden keempat.</p>
+    <p>Aku tidak tahu bahwa mereka sudah mencarinya—mencari<span class="em">ku</span>—sejak tujuh menit lalu.</p>
+    <p>Yang kutahu: kakiku membawa ke arah yang berbeda dari semua yang pernah kuhitung. Bukan menuju pintu keluar, bukan menuju keamanan, bukan menuju solusi logis apapun.</p>
+    <p>Mereka membawaku ke arah suara-suara itu.</p>
+    <p>Ke arah orang-orang yang terjebak di dalam mesin.</p>
+  </div>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <span class="divider-label">Akhir Prolog</span>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="page-footer">
+    <span>Ghost Circuits · Sirkuit Getayangan</span>
+    <span class="page-num">I</span>
+  </div>
+
+</div>
+
+<script>
+  const cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', (e) => {
+    cursor.style.left = e.clientX - 4 + 'px';
+    cursor.style.top = e.clientY - 4 + 'px';
+  });
+
+  // Glitch effect on scroll
+  const glitches = document.querySelectorAll('.glitch');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.animation = 'none';
+        setTimeout(() => e.target.style.animation = '', 50);
+      }
+    });
+  }, { threshold: 0.5 });
+  glitches.forEach(g => observer.observe(g));
+</script>
+</body>
+</html>
