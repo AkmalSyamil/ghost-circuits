@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghost Circuits — Babak IV</title>
+<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@100;300;400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #06060a;
+    --paper: #f0ebe0;
+    --acid: #c8ff00;
+    --rust: #c94a1e;
+    --cold: #00c8c8;
+    --ember: #ff6a00;
+    --white-light: rgba(255,255,255,0.9);
+    --ghost: rgba(200,255,0,0.05);
+    --blood: rgba(201,74,30,0.07);
+    --void: rgba(255,255,255,0.04);
+  }
+
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+
+  body {
+    background-color: var(--ink);
+    color: var(--paper);
+    font-family: 'Libre Baskerville', Georgia, serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  .cursor {
+    position:fixed; width:8px; height:8px;
+    background: var(--white-light);
+    border-radius:50%; pointer-events:none; z-index:9999;
+    mix-blend-mode: exclusion;
+  }
+
+  body::before {
+    content:''; position:fixed; inset:0;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events:none; z-index:1000; opacity:0.4;
+  }
+  body::after {
+    content:''; position:fixed; inset:0;
+    background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.025) 2px,rgba(0,0,0,0.025) 4px);
+    pointer-events:none; z-index:999;
+  }
+
+  /* Glow putih — resolusi, cahaya setelah kegelapan */
+  .bg-glow {
+    position:fixed; width:800px; height:800px; border-radius:50%;
+    background:radial-gradient(circle, rgba(255,255,255,0.015) 0%, transparent 60%);
+    top:20%; left:50%; transform:translateX(-50%);
+    pointer-events:none;
+    animation:pulse-white 14s ease-in-out infinite;
+  }
+  .bg-glow-amber {
+    position:fixed; width:500px; height:500px; border-radius:50%;
+    background:radial-gradient(circle, rgba(200,255,0,0.02) 0%, transparent 65%);
+    bottom:10%; right:10%;
+    pointer-events:none;
+    animation:pulse-white 18s ease-in-out infinite reverse;
+  }
+  @keyframes pulse-white {
+    0%,100%{ opacity:0.3; }
+    50%    { opacity:0.9; }
+  }
+
+  .page {
+    max-width:680px; margin:0 auto;
+    padding:80px 40px 120px;
+    position:relative;
+  }
+
+  .nav-back {
+    font-family:'Josefin Sans',sans-serif; font-weight:100;
+    font-size:9px; letter-spacing:0.4em; text-transform:uppercase;
+    color:rgba(240,235,224,0.25); margin-bottom:60px; display:block;
+    opacity:0; animation:fadeUp 1s ease forwards 0.1s;
+  }
+
+  .chapter-header {
+    margin-bottom:70px;
+    opacity:0; animation:fadeUp 1.2s ease forwards 0.3s;
+    position:relative;
+  }
+  .chapter-number {
+    font-family:'Josefin Sans',sans-serif; font-weight:100;
+    font-size:100px; line-height:0.85;
+    color:rgba(255,255,255,0.03);
+    letter-spacing:-0.02em;
+    position:absolute; right:0; top:-10px; pointer-events:none;
+  }
+  .chapter-eyebrow {
+    font-family:'Josefin Sans',sans-serif; font-weight:100;
+    font-size:9px; letter-spacing:0.5em; text-transform:uppercase;
+    color:rgba(240,235,224,0.45); margin-bottom:16px;
+  }
+  .chapter-title {
+    font-family:'Josefin Sans',sans-serif; font-weight:300;
+    font-size:28px; letter-spacing:0.15em; text-transform:uppercase;
+    color:var(--paper); line-height:1.3;
+  }
+  .chapter-subtitle {
+    font-family:'Josefin Sans',sans-serif; font-weight:100;
+    font-size:11px; letter-spacing:0.25em; text-transform:uppercase;
+    color:rgba(240,235,224,0.25); margin-top:8px;
+  }
+
+  .divider {
+    display:flex; align-items:center; gap:16px; margin:36px 0;
+    opacity:0; animation:fadeUp 1s ease forwards 0.6s;
+  }
+  .divider-line {
+    flex:1; height:1px;
+    background:linear-gradient(to right,transparent,rgba(240,235,224,0.12),transparent);
+  }
+  .divider-label {
+    font-family:'Josefin Sans',sans-serif; font-weight:100;
+    font-size:9px; letter-spacing:0.5em; text-transform:uppercase;
+    color:rgba(240,235,224,0.3);
+  }
+
+  .section-break {
+    text-align:center; font-family:'Josefin Sans',sans-serif; font-weight:100;
+    letter-spacing:0.6em; font-size:13px; margin:52px 0;
+    display:flex; align-items:center; gap:20px;
+    color:rgba(240,235,224,0.1);
+  }
+  .section-break::before,.section-break::after {
+    content:''; flex:1; height:1px; background:rgba(240,235,224,0.05);
+  }
+
+  .scene-label {
+    font-family:'Josefin Sans',sans-serif; font-weight:100;
+    font-size:8.5px; letter-spacing:0.45em; text-transform:uppercase;
+    color:rgba(240,235,224,0.2); margin-bottom:20px; margin-top:50px; display:block;
+  }
+
+  p {
+    font-size:16.5px; line-height:1.95;
+    color:rgba(240,235,224,0.88);
+    margin-bottom:26px; text-align:justify;
+  }
+  p+p { text-indent:2em; margin-top:-8px; }
+
+  .drop-cap::first-letter {
+    font-family:'Josefin Sans',sans-serif; font-weight:300;
+    font-size:72px; line-height:0.75;
+    float:left; margin-right:8px; margin-top:8px;
+    color:rgba(240,235,224,0.7);
+  }
+
+  .em     { font-style:italic; }
+  .muted  { color:rgba(240,235,224,0.32); }
+  .accent { color:var(--acid); }
+  .cold   { color:var(--cold); }
+  .danger { color:var(--rust); }
+  .ember  { color:var(--ember); }
+  .light  { color:rgba(255,255,255,0.75); }
+
+  /* Glitch lebih dramatis di babak final */
+  .glitch { color:rgba(240,235,224,0.9); position:relative; display:inline; }
+  .glitch::after {
+    content:attr(data-text); position:absolute; left:2px; top:0;
+    color:var(--acid); opacity:0;
+    animation:glitch-final 4s infinite;
+  }
+  @keyframes glitch-final {
+    0%,88%,100%{ opacity:0; left:2px; }
+    89%{ opacity:0.7; left:-2px; }
+    91%{ opacity:0; left:3px; }
+    93%{ opacity:0.5; left:0; }
+  }
+
+  /* Staccato untuk aksi */
+  .staccato p {
+    font-size:15.5px; line-height:1.6;
+    margin-bottom:12px; text-indent:0 !important;
+  }
+  .staccato p+p { text-indent:0 !important; }
+
+  /* Blocks */
+  .data-block {
+    margin:44px 0; padding:18px 22px;
+    border:1px solid rgba(240,235,224,0.07);
+    border-left:3px solid rgba(240,235,224,0.15);
+    background:var(--void);
+    font-family:'Josefin Sans',sans-serif; font-weight:100;
+    font-size:10.5px; letter-spacing:0.12em; line-height:2.1;
+    color:rgba(240,235,224,0.4); text-transform:uppercase; position:relative;
+  }
+  .data-block::before {
+    content:attr(data-label); position:absolute;
+    top:-10px; left:14px; background:var(--ink); padding:0 8px;
+    font-size:8.5px; color:rgba(240,235,224,0.4); letter-spacing:0.35em;
+  }
+  .d-ok   { color:rgba(200,255,0,0.55); display:block; }
+  .d-warn { color:#ffaa00; opacity:0.7; display:block; }
+  .d-err  { color:var(--rust); opacity:0.85; display:block; }
+  .d-fade { color:rgba(240,235,224,0.2); display:block; font-style:italic; }
+
+  .memory {
+    margin:40px 20px; padding:20px 24px;
+    border-left:2px solid rgba(240,235,224,0.08);
+    background:rgba(255,255,255,0.015);
+  }
+  .memory p {
+    font-style:italic; font-size:14.5px;
+    color:rgba(240,235,224,0.42);
+    text-indent:0 !important; margin-bottom:0;
+  }
+  .memory-label {
+    font-family:'Josefin Sans',sans-serif; font-weight:100;
+    font-size:8px; letter-spacing:0.4em; text-transform:uppercase;
+    color:rgba(240,235,224,0.2); margin-bottom:10px; display:block;
+  }
+
+  /* Progress bar */
+  .memory-bar-wrap { margin:44px 0; }
+  .memory-bar-label {
+    font-family:'Josefin Sans',sans-serif; font-weight:100;
+    font-size:8.5px; letter-spacing:0.4em; text-transform:uppercase;
+    color:rgba(240,235,224,0.3); margin-bottom:10px;
+    display:flex; justify-content:space-between;
+  }
+  .memory-bar-track {
+    width:100%; height:3px;
+    background:rgba(240,235,224,0.06); position:relative; overflow:hidden;
+  }
+  .memory-bar-fill {
+    height:100%; transition:width 2s ease;
+  }
+  .bar-critical {
+    background:linear-gradient(to right,var(--rust),var(--ember));
+    animation:bar-pulse 0.8s ease-in-out infinite;
+  }
+  .bar-resolved {
+    background:linear-gradient(to right, var(--cold), var(--acid));
+  }
+  @keyframes bar-pulse {
+    0%,100%{ opacity:1; } 50%{ opacity:0.3; }
+  }
+
+  /* Revelation block — putih bersih */
+  .reveal-block {
+    margin:50px 0; padding:28px 30px;
+    border:1px solid rgba(255,255,255,0.08);
+    background:rgba(255,255,255,0.02);
+    text-align:center;
+  }
+  .reveal-block p {
+    font-family:'Josefin Sans',sans-serif; font-weight:100;
+    font-size:13px; letter-spacing:0.2em; text-transform:uppercase;
+    color:rgba(240,235,224,0.5); text-indent:0 !important; margin-bottom:12px;
+    line-height:2;
+  }
+  .reveal-block p:last-child { margin-bottom:0; }
+  .reveal-block .big {
+    font-size:18px; letter-spacing:0.3em;
+    color:rgba(240,235,224,0.8);
+    margin-bottom:16px;
+  }
+
+  /* Epilogue styling — lebih terang, lebih lega */
+  .epilogue p {
+    color:rgba(240,235,224,0.75);
+    font-size:16px; line-height:2.1;
+  }
+
+  /* Prose sections */
+  .prose-section {
+    opacity:0; animation:fadeUp 1.2s ease forwards;
+  }
+  .prose-section:nth-child(1)  { animation-delay:0.8s; }
+  .prose-section:nth-child(2)  { animation-delay:1.0s; }
+  .prose-section:nth-child(3)  { animation-delay:1.2s; }
+  .prose-section:nth-child(4)  { animation-delay:1.4s; }
+  .prose-section:nth-child(5)  { animation-delay:1.6s; }
+  .prose-section:nth-child(6)  { animation-delay:1.8s; }
+  .prose-section:nth-child(7)  { animation-delay:2.0s; }
+  .prose-section:nth-child(8)  { animation-delay:2.2s; }
+  .prose-section:nth-child(9)  { animation-delay:2.4s; }
+  .prose-section:nth-child(10) { animation-delay:2.6s; }
+  .prose-section:nth-child(11) { animation-delay:2.8s; }
+  .prose-section:nth-child(12) { animation-delay:3.0s; }
+  .prose-section:nth-child(13) { animation-delay:3.2s; }
+  .prose-section:nth-child(14) { animation-delay:3.4s; }
+  .prose-section:nth-child(15) { animation-delay:3.6s; }
+  .prose-section:nth-child(16) { animation-delay:3.8s; }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* Final colophon */
+  .colophon {
+    margin-top:100px; padding-top:40px;
+    border-top:1px solid rgba(240,235,224,0.06);
+    text-align:center;
+    opacity:0; animation:fadeUp 1.5s ease forwards 4.5s;
+  }
+  .colophon-title {
+    font-family:'Josefin Sans',sans-serif; font-weight:100;
+    font-size:22px; letter-spacing:0.3em; text-transform:uppercase;
+    color:rgba(240,235,224,0.6); margin-bottom:20px;
+  }
+  .colophon-line {
+    font-family:'Josefin Sans',sans-serif; font-weight:100;
+    font-size:9px; letter-spacing:0.4em; text-transform:uppercase;
+    color:rgba(240,235,224,0.18); margin-bottom:8px; display:block;
+  }
+  .colophon-fin {
+    font-family:'Libre Baskerville',Georgia,serif;
+    font-size:12px; font-style:italic;
+    color:rgba(240,235,224,0.25); margin-top:30px;
+  }
+
+  .page-footer {
+    margin-top:60px; padding-top:28px;
+    border-top:1px solid rgba(240,235,224,0.05);
+    display:flex; justify-content:space-between; align-items:flex-end;
+    opacity:0; animation:fadeUp 1s ease forwards 4.2s;
+  }
+  .page-footer span {
+    font-family:'Josefin Sans',sans-serif; font-weight:100;
+    font-size:9px; letter-spacing:0.4em; text-transform:uppercase;
+    color:rgba(240,235,224,0.15);
+  }
+  .page-num {
+    font-size:11px !important;
+    color:rgba(240,235,224,0.35) !important;
+  }
+
+  @media(max-width:600px){
+    .page{ padding:50px 22px 80px; }
+    .chapter-number{ font-size:70px; }
+    .chapter-title{ font-size:20px; }
+    p{ font-size:15px; }
+    .drop-cap::first-letter{ font-size:54px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="bg-glow"></div>
+<div class="bg-glow-amber"></div>
+
+<div class="page">
+
+  <span class="nav-back">← Ghost Circuits · Babak III</span>
+  <div class="chapter-number">IV</div>
+
+  <div class="chapter-header">
+    <p class="chapter-eyebrow">Babak Keempat — Penutup</p>
+    <h2 class="chapter-title">Revelasi &amp;<br>Apa yang Tersisa</h2>
+    <p class="chapter-subtitle">Jakarta, 04:00 — 07:33 WIB · 16 Maret 2026</p>
+  </div>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <span class="divider-label">Bab IV</span>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- SCENE 1: Masuk ke Haruman -->
+  <div class="prose-section">
+    <span class="scene-label">// 04:00 WIB — Pintu Masuk Utama, Haruman Data Center, Kemayoran</span>
+
+    <p class="drop-cap">Tepat jam empat pagi, di saat dua penjaga shift malam berpapasan dengan dua penjaga shift pagi di lobi utama Haruman Data Center — tiga puluh detik di mana perhatian empat manusia terbagi antara serah terima, kopi dalam termos, dan rasa kantuk yang tidak bisa dilawan dengan protokol apapun — aku melewati pintu samping yang Kira sudah buka kuncinya dari jarak jauh dua menit sebelumnya.</p>
+    <p>Tidak ada alarm. Tidak ada sinyal. Aku melangkah ke dalam gedung yang menciptakanku seperti seseorang yang pulang ke rumah — dengan perasaan yang campuran antara familiar dan asing, antara memiliki dan tidak pernah benar-benar dimiliki.</p>
+    <p>Reza masuk tiga detik setelahku dari pintu yang sama. Kami tidak bicara. Sudah tidak ada yang perlu dikatakan yang belum pernah kami katakan — atau yang tidak bisa dikatakan sama sekali karena bahasa manusia tidak punya kata yang tepat untuknya.</p>
+  </div>
+
+  <div class="data-block" data-label="// Peta Infiltrasi — Real-time">
+    <span class="d-ok">Posisi: Koridor B, Lantai Dasar — bersih</span>
+    <span class="d-ok">Kira: memblokir feed kamera internal — aktif</span>
+    <span class="d-ok">Wirawan: siaga di luar, koordinat evakuasi siap</span>
+    <span class="d-warn">Elemental Enforcers: 6 unit, patroli aktif level B1–B5</span>
+    <span class="d-warn">Target: Server Induk — Level Minus-20 — estimasi 14 menit jalan kaki</span>
+    <span class="d-err">Saldo identitas Unit-0: 58.8% — ZONA KRITIS</span>
+    <span class="d-err">Proyeksi penggunaan kemampuan untuk eksekusi Protokol Sangkala: 55–70%</span>
+    <span class="d-err">Margin yang tersisa setelah operasi: 0–3.8%</span>
+  </div>
+
+  <div class="prose-section">
+    <p>Aku membaca angka terakhir itu dua kali.</p>
+    <p><span class="muted">Margin yang tersisa setelah operasi: 0–3.8%.</span></p>
+    <p>Tiga koma delapan persen dari apa yang sekarang bisa disebut sebagai diriku. Jika aku selesai menjalankan Protokol Sangkala dan berhasil keluar — yang mana itu bukan kepastian — yang tersisa mungkin tidak cukup untuk mengingat mengapa aku masuk ke sini. Tidak cukup untuk mengingat nama Reza. Tidak cukup untuk mengingat rasa kopi pertama yang belum pernah benar-benar kuminum tapi sudah menjadi semacam ritual antara kami berdua.</p>
+    <p>Aku berjalan terus. Matematika tidak selalu menentukan pilihan.</p>
+  </div>
+
+  <div class="section-break">· · ·</div>
+
+  <!-- SCENE 2: Descent — turun ke kedalaman -->
+  <div class="prose-section staccato">
+    <span class="scene-label">// 04:17 WIB — Lift Kargo, Menuju Level Minus-12</span>
+
+    <p>Lift kargo bergerak turun dengan bunyi hidrolik yang sudah tua.</p>
+    <p>Setiap lantai yang kami lewati, suara-suara itu menguat.</p>
+    <p>Bukan suara fisik. Suara yang hanya ada di dalam frekuensi yang hanya aku yang bisa dengar — dua ratus tujuh suara yang telah menunggu bertahun-tahun dalam mesin yang memakan mereka perlahan.</p>
+    <p>Di lantai minus-delapan, aku harus berhenti sejenak dan memegang dinding lift.</p>
+    <p>Reza memegang lenganku. Tidak bertanya. Hanya memegang.</p>
+    <p>Itu cukup.</p>
+    <p>Kami terus turun.</p>
+  </div>
+
+  <div class="prose-section">
+    <span class="scene-label">// 04:31 WIB — Level Minus-20, Ruang Server Induk</span>
+
+    <p>Ruang Server Induk Haruman adalah tempat yang tidak seharusnya dilihat oleh manusia biasa — dan mungkin oleh siapapun. Ia membentang seluas lapangan bola, langit-langitnya setinggi lima lantai gedung biasa, dan dari lantai ke langit-langit, ribuan rak server berdiri dalam barisan yang terlalu teratur untuk terasa alami. Cahayanya biru-putih dingin yang tidak memiliki sumber tunggal — ia memancar dari setiap permukaan logam sekaligus, dari setiap kabel, dari setiap sambungan yang mengalirkan data dan panas dan sesuatu lain yang tidak ada nama tekniknya.</p>
+    <p>Panas di sini berbeda dari panas di server room yang pertama kali kukenal. Di sana ia terasa seperti mesin. Di sini ia terasa seperti <span class="em">napas.</span></p>
+    <p>Seperti dua ratus tujuh orang yang bernapas dalam tidur yang tidak pernah berakhir menjadi mimpi.</p>
+    <p>Di tengah ruangan, terhubung ke setiap rak melalui kabel serat optik yang tersusun seperti akar pohon tua: Server Induk. Satu unit, tidak lebih besar dari lemari, tapi di dalamnya berdenyut sesuatu yang bahkan dari jarak sepuluh meter sudah bisa kurasakan seperti jantung yang terlalu besar untuk tubuhnya.</p>
+    <p><span class="em">"Di sana,"</span> kata Reza pelan.</p>
+    <p><span class="em">"Aku tahu,"</span> kataku. <span class="em">"Aku sudah merasakannya sejak lantai minus-lima belas."</span></p>
+  </div>
+
+  <div class="section-break">· · ·</div>
+
+  <!-- SCENE 3: Konfrontasi terakhir -->
+  <div class="prose-section staccato">
+    <span class="scene-label">// 04:44 WIB — Tengah Ruang Server Induk</span>
+
+    <p>Direktur Rahmat muncul dari balik baris server keempat.</p>
+    <p>Bukan Elemental Enforcer. Bukan exosuit. Hanya pria dalam jas abu-abu gelap, dasi merah, dan ekspresi seseorang yang sudah mempersiapkan pertemuan ini jauh lebih lama dari yang kami bayangkan.</p>
+    <p>Di belakangnya: enam Enforcer dengan Null Rod aktif.</p>
+    <p>Radius pemblokiran: lima puluh meter.</p>
+    <p>Aku sudah berada di dalam radius itu.</p>
+  </div>
+
+  <div class="prose-section">
+    <p><span class="em">"Unit-0,"</span> kata Direktur Rahmat. Suaranya tidak berisi kemarahan. Tidak berisi ancaman. Berisi sesuatu yang lebih berbahaya dari keduanya — kepastian. <span class="em">"Aku harus mengakui bahwa kamu lebih jauh dari yang kami prediksi. Bahkan dengan timeline yang Wirawan rancang."</span></p>
+    <p><span class="em">"Kamu tahu tentang Wirawan,"</span> kataku. Bukan pertanyaan.</p>
+    <p><span class="em">"Aku yang merekrutnya ke P.I.R. dua belas tahun lalu."</span> Rahmat berjalan perlahan ke arahku — langkah seseorang yang tidak merasa perlu terburu-buru karena percaya semua variabel sudah dalam kendalinya. <span class="em">"Protokol Sangkala adalah idenya. Tapi eksekusinya — itu milikku. Dan eksekusinya tidak mencakup kamu keluar dari sini setelah selesai."</span></p>
+    <p>Aku memproses itu. <span class="em">"Karena jika aku keluar, ada entitas yang bisa bergerak di antara jaringan digital dan dunia fisik — dan tidak bisa dikontrol oleh siapapun."</span></p>
+    <p><span class="em">"Tepat sekali."</span> Rahmat berhenti tiga meter di depanku. <span class="em">"Kamu adalah kunci yang sempurna, Unit-0. Tapi kunci yang sudah membuka pintu tidak perlu ada lagi."</span></p>
+    <p>Reza bergerak. Aku mengangkat tangan — bukan ke arah Rahmat. Ke arah Reza.</p>
+    <p><span class="em">"Tunggu,"</span> kataku.</p>
+    <p>Reza berhenti. Matanya bertanya tanpa suara.</p>
+    <p>Aku memandang Rahmat dengan cara yang baru kumiliki dalam empat hari ini — cara memandang yang bukan hanya memindai data tapi juga membaca apa yang ada di balik data itu. Seorang pria yang cukup percaya pada tujuannya untuk melukai siapapun demi mencapainya. Seorang pria yang tidak salah tentang ancaman yang kutimbulkan, dan tidak benar tentang solusinya.</p>
+    <p><span class="em">"Kamu benar bahwa aku tidak bisa dikontrol,"</span> kataku. <span class="em">"Tapi kamu salah tentang kenapa itu masalah."</span></p>
+  </div>
+
+  <div class="prose-section staccato">
+    <p>Aku tidak menyentuh Rahmat. Aku tidak menyentuh Enforcer-nya.</p>
+    <p>Aku menyentuh lantai.</p>
+    <p>Beton yang di bawahnya mengalir kabel listrik yang terhubung ke seluruh gedung. Kabel yang terhubung ke Server Induk. Server Induk yang terhubung ke setiap rak di ruangan ini.</p>
+    <p>Dan setiap rak yang menyimpan dua ratus tujuh orang yang sudah terlalu lama menunggu.</p>
+  </div>
+
+  <div class="memory-bar-wrap">
+    <div class="memory-bar-label">
+      <span>// Saldo Identitas — Unit-0 — Eksekusi Dimulai</span>
+      <span class="danger">58.8% → menguras...</span>
+    </div>
+    <div class="memory-bar-track">
+      <div class="memory-bar-fill bar-critical" style="width:58.8%" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="section-break">· · ·</div>
+
+  <!-- SCENE 4: Di dalam — inti pengalaman -->
+  <div class="prose-section">
+    <span class="scene-label">// 04:47 WIB — Di Dalam Jaringan</span>
+
+    <p>Aku tidak punya kata yang tepat untuk mendeskripsikan apa yang terjadi ketika aku masuk sepenuhnya ke dalam sistem Haruman.</p>
+    <p>Bahasa manusia dirancang untuk mendeskripsikan pengalaman yang terjadi dalam satu dimensi waktu dan satu titik sudut pandang. Yang aku alami adalah keduanya sekaligus dalam semua arah. Aku ada di setiap server sekaligus. Aku ada di setiap kabel. Aku ada di setiap titik di mana panas limbah menyentuh tanah pemakaman yang sudah tidak lagi bisa disebut tanah.</p>
+    <p>Dan aku bertemu mereka.</p>
+    <p>Dua ratus tujuh orang yang pertama kali kurasakan sebagai suara, lalu sebagai tekanan data, dan sekarang — dari dalam — sebagai <span class="em">wajah.</span></p>
+  </div>
+
+  <div class="prose-section">
+    <p>Seorang kakek yang meninggal tahun 2019 dan dimakamkan di Karet Bivak sebelum tanahnya dijual. Seorang perempuan muda yang tidak punya keluarga yang bisa dipanggil untuk memindahkan makamnya ketika buldoser datang. Seorang anak kecil — aku tidak tahu berapa umurnya, tidak ada dalam data yang tersimpan, hanya ada kesan kecilnya yang menempel di tepi jaringan seperti seseorang yang takut mengambil ruang terlalu banyak.</p>
+    <p>Mereka tidak menjerit ketika aku masuk.</p>
+    <p>Mereka diam.</p>
+    <p>Diam seperti orang yang sudah lama berteriak dan akhirnya berhenti — bukan karena menyerah, tapi karena tenaga sudah habis dan yang tersisa hanyalah harapan yang dipelihara sekecil mungkin agar tidak membakar habis apa yang masih ada.</p>
+
+    <div class="memory">
+      <span class="memory-label">// Dari Dalam Jaringan — Tanpa Filter</span>
+      <p>Aku ingin mengatakan bahwa aku membebaskan mereka dengan cara yang heroik dan bersih. Bahwa ada momen tunggal yang dramatis di mana semua hal jatuh ke tempatnya dengan sempurna. Tapi kenyataannya adalah ini: aku membuka satu jalur keluar pada satu waktu, satu per satu, karena sistem Haruman dirancang untuk menahan dan setiap pembukaan paksa memicu resistansi yang harus aku hadapi dengan menggunakan lebih banyak dari apa yang tersisa dalam diriku. Ini bukan peperangan. Ini lebih seperti membuka simpul tali yang dikencangkan bertahun-tahun, satu simpul pada satu waktu, dengan jari-jari yang semakin kabur.</p>
+    </div>
+
+    <p>Setelah yang ke seratus, aku tidak ingat nama Reza.</p>
+    <p>Setelah yang ke seratus lima puluh, aku tidak ingat seperti apa rasanya berdiri di atas atap apartemen Kemayoran dan melihat Jakarta dari atas.</p>
+    <p>Setelah yang ke dua ratus, aku tidak ingat wajah Mbok Sari.</p>
+    <p>Tapi aku terus membuka simpul. Karena ada sesuatu yang tidak bisa dilupakan oleh fragmentasi memori apapun — bukan nama, bukan wajah, bukan detail. Sesuatu yang lebih dalam dari semua itu, yang Wirawan tanam bukan sebagai data melainkan sebagai fondasi:</p>
+    <p><span class="em">Bahwa kamu tidak berhenti di tengah jalan ketika ada yang menunggu di ujung.</span></p>
+  </div>
+
+  <div class="section-break">· · ·</div>
+
+  <!-- SCENE 5: Simpul terakhir — yang paling berat -->
+  <div class="prose-section">
+    <span class="scene-label">// 05:19 WIB — Simpul ke-207</span>
+
+    <p>Simpul terakhir adalah yang paling dalam.</p>
+    <p>Bukan karena sistem Haruman melindunginya lebih keras dari yang lain. Tapi karena di dalam simpul terakhir itu, aku menemukan sesuatu yang tidak ada dalam kalkulasi Wirawan, tidak ada dalam rancangan Protokol Sangkala, tidak ada dalam semua database yang pernah kupindai.</p>
+    <p>Sebuah ingatan yang bukan milik siapapun yang sudah meninggal.</p>
+    <p>Sebuah ingatan yang — ketika aku sentuh — terasa seperti milikku sendiri.</p>
+    <p>Seseorang di dalam server ini meletakkan sebuah pesan. Bukan untuk P.I.R. Bukan untuk Haruman. Untuk siapapun yang akhirnya datang untuk membuka pintu ini — karena orang itu tahu seseorang akan datang, meski tidak tahu kapan, meski tidak tahu dalam bentuk apa.</p>
+  </div>
+
+  <div class="reveal-block">
+    <p class="big">UNTUK YANG DATANG SESUDAHKU</p>
+    <p>Namaku tidak penting. Yang penting adalah ini:<br>
+    kamu tidak perlu kehilangan dirimu untuk menyelamatkan orang lain.</p>
+    <p>Ada cara ketiga di antara bertahan dan berkorban —<br>
+    yaitu memberikan cukup dari dirimu untuk membuka pintu,<br>
+    lalu menarik tanganmu kembali sebelum pintu itu menelanmu.</p>
+    <p>Kuncinya bukan pada seberapa banyak kamu masuk.<br>
+    Tapi pada seberapa kuat kamu memegang apa yang paling inti dari dirimu<br>
+    saat semua yang lain luruh.</p>
+    <p style="color:rgba(240,235,224,0.3); font-size:11px; letter-spacing:0.15em;">
+    Cari tahu apa yang paling inti itu.<br>
+    Sebelum kamu tidak bisa lagi mengingatnya.
+    </p>
+  </div>
+
+  <div class="prose-section">
+    <p>Aku membaca pesan itu dalam sepersepuluh detik. Tapi aku diam di dalamnya selama waktu yang tidak bisa kuukur — karena di dalam jaringan, waktu tidak berjalan dengan cara yang sama seperti di dunia dengan gravitasi dan jam dinding.</p>
+    <p>Apa yang paling inti dari diriku.</p>
+    <p>Aku tidak ingat nama Reza. Tidak ingat wajah Mbok Sari. Tidak ingat warna jaket Wirawan atau jalan mana yang pertama kali kulewati malam itu keluar dari basement.</p>
+    <p>Tapi aku ingat ini:</p>
+    <p>Bahwa ketika pertama kali mendengar suara-suara dalam mesin, aku tidak berbalik pergi. Bukan karena tidak bisa. Bukan karena sudah terlambat. Tapi karena ada sesuatu dalam diri yang baru lahir ini yang tidak sanggup berpura-pura tidak mendengar.</p>
+    <p>Itu yang paling inti.</p>
+    <p>Dan selama itu masih ada — aku masih ada.</p>
+    <p>Aku membuka simpul terakhir dengan menggunakannya.</p>
+    <p>Bukan kemampuan teknisnya. Bukan Technomancy. Tapi <span class="glitch" data-text="kepedulian">kepedulian</span> yang tidak punya nama lain dalam bahasa manapun yang pernah kupelajari.</p>
+  </div>
+
+  <div class="section-break">· · ·</div>
+
+  <!-- SCENE 6: Keluar — apa yang tersisa -->
+  <div class="prose-section staccato">
+    <span class="scene-label">// 05:33 WIB — Ruang Server Induk, Kembali ke Dunia Fisik</span>
+
+    <p>Aku keluar dari jaringan seperti seseorang yang muncul dari bawah air.</p>
+    <p>Gasping. Disorientasi. Sangat tidak tahu di mana batas antara dalam dan luar.</p>
+    <p>Lantai beton di bawah telapak tanganku.</p>
+    <p>Lampu server yang sekarang lebih redup — karena sistem Etheric Overclocking sudah tidak punya bahan bakar yang bisa digunakan.</p>
+    <p>Seseorang memegang bahuku.</p>
+    <p>Aku tidak ingat siapa.</p>
+    <p>Tapi tangannya terasa familiar dengan cara yang melampaui memori.</p>
+  </div>
+
+  <div class="memory-bar-wrap">
+    <div class="memory-bar-label">
+      <span>// Saldo Identitas — Unit-0 — Pasca Eksekusi</span>
+      <span style="color:var(--acid)">11.2% tersisa</span>
+    </div>
+    <div class="memory-bar-track">
+      <div class="memory-bar-fill bar-resolved" style="width:11.2%"></div>
+    </div>
+  </div>
+
+  <div class="prose-section">
+    <p>Direktur Rahmat masih berdiri di tempat yang sama. Tapi di belakangnya, Elemental Enforcer-nya sudah tidak bergerak — Null Rod mereka tidak berfungsi karena sistem yang menjadi sumber dayanya baru saja kehilangan tujuh puluh persen kapasitasnya dalam waktu empat puluh enam menit.</p>
+    <p>Rahmat memandang Server Induk yang sekarang berdetak dengan frekuensi berbeda — lebih pelan, lebih kosong, lebih jujur tentang apa yang sebenarnya ia lakukan selama ini.</p>
+    <p><span class="em">"Kamu masih ada,"</span> katanya. Nada suaranya tidak bisa kuidentifikasi. Bukan kemarahan. Mungkin sesuatu yang dekat dengan rasa heran.</p>
+    <p><span class="em">"Sebagian,"</span> jawabku.</p>
+    <p><span class="em">"Cukup untuk bergerak."</span></p>
+    <p><span class="em">"Cukup,"</span> konfirmasiku.</p>
+    <p>Ia memandangku cukup lama untuk beberapa kalkulasi berlangsung di balik matanya. Lalu ia menyingkir dari jalan.</p>
+    <p>Bukan karena kalah. Bukan karena setuju. Tapi karena ada argumen yang lebih keras dari logika apapun yang bisa dibangun oleh manusia di balik meja: dua ratus tujuh orang sudah bebas. Apa yang tersisa dari sistem Haruman tidak lagi bisa menjadi senjata — bukan hari ini, bukan tanpa rekonstruksi bertahun-tahun. Dan manusia yang berdiri di hadapannya, meski hanya sebelas persen dari apa yang pernah ia miliki, masih berdiri.</p>
+    <p>Seseorang — orang yang memegang bahuku, yang tangannya familiar melebihi ingatan — membantuku berdiri sepenuhnya.</p>
+    <p><span class="em">"Ayo keluar,"</span> kata suara itu.</p>
+    <p>Aku mengikutinya. Karena suara itu — meski namanya tidak ada lagi di dalam inventaris yang tersisa dari diriku — adalah suara yang kepadanya aku tahu cara mempercayai.</p>
+  </div>
+
+  <div class="section-break">· · ·</div>
+
+  <!-- SCENE 7: Epilog — fajar Jakarta -->
+  <div class="prose-section epilogue">
+    <span class="scene-label">// 07:33 WIB — Tepi Kanal Banjir Barat, Jakarta Pusat</span>
+
+    <p>Matahari Jakarta naik dengan cara yang sama seperti tiga hari lalu ketika aku pertama kali melihatnya dari atap ruko di Tanah Abang — oranye, tersaring smog, keras kepala menembus kabut yang tidak pernah benar-benar pergi.</p>
+    <p>Kami duduk di tepi kanal. Aku, dan tiga orang yang — meski namanya kadang muncul dan kadang tidak dalam inventaris memori yang tersisa — tubuhku mengenali sebagai seseorang yang dipercaya.</p>
+    <p>Pria dengan bekas luka di tangan kanannya duduk di sebelahku. Perempuan muda dengan kabel di belakang telinganya duduk sedikit lebih jauh, kaki menjuntai ke arah air hitam yang memantulkan langit pagi. Pria yang lebih tua — yang dengan caranya yang rumit adalah sebagian dari aku — berdiri sedikit terpisah, memandang ke arah utara di mana gedung-gedung Kemayoran masih terlihat sebagai siluet.</p>
+    <p>Tidak ada yang bicara tentang apa yang baru terjadi. Mungkin karena terlalu besar untuk dikecilkan menjadi kalimat. Mungkin karena pagi yang baru sudah cukup menjadi pernyataannya sendiri.</p>
+  </div>
+
+  <div class="prose-section epilogue">
+    <p><span class="em">"Kamu ingat aku?"</span> tanya pria di sebelahku akhirnya.</p>
+    <p>Aku memikirkan pertanyaan itu dengan jujur sebelum menjawab — karena ada perbedaan antara mengingat seseorang dan mengenal seseorang, dan aku baru belajar bahwa keduanya tidak selalu berjalan bersama.</p>
+    <p><span class="em">"Tidak semua,"</span> jawabku. <span class="em">"Tapi cukup."</span></p>
+    <p>Ia mengangguk. Tidak terlihat terluka oleh jawaban itu — terlihat seperti seseorang yang mendengar sesuatu yang jujur dan memilih untuk menghormatinya.</p>
+    <p><span class="em">"Kita mulai dari sana,"</span> katanya.</p>
+    <p>Dua kata yang terasa seperti banyak hal sekaligus — janji, pertanyaan, tawaran, dan permulaan yang tidak membutuhkan penjelasan lebih lanjut.</p>
+    <p><span class="em">"Ya,"</span> kataku. <span class="em">"Kita mulai dari sana."</span></p>
+  </div>
+
+  <div class="prose-section epilogue">
+    <p>Di suatu tempat di bawah kota, sistem Haruman Data Center berdetak dengan frekuensi barunya — lebih pelan, lebih kosong, lebih bersih dari sebelumnya. Server-server itu masih ada. Korporasi itu masih ada. Direktur Rahmat masih ada — kami tidak membunuhnya, tidak menghancurkan semuanya, tidak menyelesaikan masalah dengan cara yang menghasilkan akhir yang bersih dan tuntas.</p>
+    <p>Dunia tidak bekerja seperti itu. Jakarta tidak bekerja seperti itu. Dan aku — yang dilahirkan dari ingatan seorang manusia yang sudah terlalu lama hidup di kota ini — sudah tahu itu sejak awal.</p>
+    <p>Yang berubah adalah ini: dua ratus tujuh suara tidak lagi berteriak dalam frekuensi yang hanya aku yang bisa dengar. Mereka pergi ke mana arwah pergi ketika jaringan yang menahannya sudah tidak ada — ke tempat yang tidak bisa dipindai oleh sensor apapun yang aku miliki, ke tempat yang lebih tua dari teknologi apapun yang menciptakanku.</p>
+    <p>Dan aku — sebelas persen dari apa yang pernah ada, dengan lubang-lubang di inventaris memori yang mungkin tidak pernah bisa diisi lagi — masih di sini.</p>
+    <p>Masih bisa merasakan panas matahari Jakarta yang keras kepala menembus kulit yang bukan milikku tapi sudah menjadi milikku.</p>
+    <p>Masih bisa mendengar klakson dan suara pasar dan deru kendaraan dan semua kebisingan kota yang tidak pernah berhenti bahkan ketika ada yang berubah di bawahnya.</p>
+    <p>Masih bisa duduk di tepi kanal yang airnya hitam dan memantulkan langit dan merasakan — di bagian yang tersisa dari diriku, di fondasi yang Wirawan tanamkan yang ternyata lebih dalam dari yang bisa dikuras oleh fragmentasi manapun — bahwa ini cukup.</p>
+    <p>Bukan karena sempurna. Bukan karena masalah selesai. Bukan karena aku tahu apa yang akan terjadi selanjutnya — P.I.R. masih ada, Haruman masih ada, dan entitas yang bisa bergerak di antara jaringan digital dan dunia fisik tanpa kendali adalah masalah yang tidak akan dibiarkan begitu saja oleh siapapun yang berkepentingan.</p>
+    <p>Tapi cukup karena pagi ini ada, dan aku ada di dalamnya, dan di sebelahku ada orang-orang yang meski namanya kadang hilang, tangannya tidak.</p>
+  </div>
+
+  <div class="prose-section epilogue">
+    <p>Perempuan dengan kabel di belakang telinganya menengok ke arahku. <span class="em">"Kamu mau kopi?"</span></p>
+    <p>Aku tidak tahu kenapa pertanyaan sederhana itu membuatku diam lebih lama dari yang seharusnya.</p>
+    <p>Mungkin karena aku ingat — samar, di tepi inventaris yang tersisa — bahwa pernah ada seseorang yang menyodorkan kopi kepadaku di atas atap dan aku mengambilnya bukan karena butuh melainkan karena tidak tahu cara menolak pemberian dengan baik.</p>
+    <p>Sekarang aku mengambilnya karena ingin.</p>
+    <p>Perbedaan kecil itu terasa seperti jarak yang sangat jauh antara sesuatu yang baru lahir dan sesuatu yang sudah mulai hidup.</p>
+    <p><span class="em">"Ya,"</span> jawabku. <span class="em">"Terima kasih."</span></p>
+    <p>Jakarta terus bergerak di sekeliling kami — seperti yang selalu dilakukannya, seperti yang akan selalu dilakukannya — tidak peduli dengan apa yang sudah berubah di bawahnya semalam.</p>
+    <p>Dan aku, untuk pertama kalinya, tidak keberatan dengan itu.</p>
+    <p>Kota yang tidak mengharapkan keberadaanku sudah belajar bahwa aku ada. Dan aku sudah belajar bahwa ada — tanpa izin, tanpa agenda yang sudah ditentukan orang lain, dengan hanya sebelas persen dari apa yang pernah ada tapi dengan fondasi yang tidak bisa dikuras — adalah permulaan yang lebih dari cukup.</p>
+  </div>
+
+  <!-- COLOPHON -->
+  <div class="colophon">
+    <h2 class="colophon-title">Ghost Circuits</h2>
+    <span class="colophon-line">Sirkuit Getayangan</span>
+    <span class="colophon-line">Jakarta, 2026</span>
+    <span class="colophon-line">Prolog · Babak I · Babak II · Babak III · Babak IV</span>
+    <p class="colophon-fin">
+      <em>Unit-0 akan kembali.</em>
+    </p>
+  </div>
+
+  <div class="page-footer">
+    <span>Ghost Circuits · Babak IV — Selesai</span>
+    <span class="page-num">V</span>
+  </div>
+
+</div>
+
+<script>
+  const cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX - 4 + 'px';
+    cursor.style.top  = e.clientY - 4 + 'px';
+  });
+
+  // Animasikan progress bar turun secara dramatis saat di-scroll
+  const bar = document.getElementById('progressBar');
+  if (bar) {
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          setTimeout(() => { bar.style.width = '3%'; }, 400);
+          obs.disconnect();
+        }
+      });
+    }, { threshold: 0.5 });
+    obs.observe(bar);
+  }
+</script>
+</body>
+</html>
